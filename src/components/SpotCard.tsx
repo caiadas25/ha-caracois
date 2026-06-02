@@ -47,7 +47,7 @@ export default function SpotCard({ spot }: { spot: Spot }) {
       )}
       <a
         href={`/spot/${spot.id}`}
-        className="mt-3 block rounded-lg bg-brand px-3 py-1.5 text-center text-sm font-semibold text-white hover:opacity-90"
+        className="mt-3 block rounded-lg bg-brand px-3 py-1.5 text-center text-sm font-semibold text-white! hover:opacity-90"
       >
         Ver página →
       </a>
