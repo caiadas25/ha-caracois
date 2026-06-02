@@ -7,6 +7,7 @@ import {
   Marker,
   Popup,
   useMap,
+  useMapEvents,
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -40,6 +41,16 @@ function Recenter({ center, zoom }: { center: LatLng; zoom: number }) {
   return null;
 }
 
+/** Captura cliques no mapa (ex.: colocar um pin manualmente). */
+function ClickHandler({ onClick }: { onClick: (p: LatLng) => void }) {
+  useMapEvents({
+    click(e) {
+      onClick({ lat: e.latlng.lat, lng: e.latlng.lng });
+    },
+  });
+  return null;
+}
+
 export interface LeafletMapProps {
   center: LatLng;
   zoom: number;
@@ -48,6 +59,8 @@ export interface LeafletMapProps {
   pending?: LatLng | null;
   /** Desativa interação — útil para mini-mapas. */
   interactive?: boolean;
+  /** Quando definido, clicar no mapa devolve as coordenadas. */
+  onMapClick?: (p: LatLng) => void;
 }
 
 export default function LeafletMap({
@@ -56,6 +69,7 @@ export default function LeafletMap({
   spots = [],
   pending = null,
   interactive = true,
+  onMapClick,
 }: LeafletMapProps) {
   const { layer, layerId, select } = useMapLayer();
   return (
@@ -78,6 +92,7 @@ export default function LeafletMap({
           maxZoom={layer.maxZoom}
         />
         <Recenter center={center} zoom={zoom} />
+        {onMapClick && <ClickHandler onClick={onMapClick} />}
         {spots.map((spot) => (
           <Marker
             key={spot.id}

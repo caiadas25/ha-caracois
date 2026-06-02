@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase, SPOTS_TABLE } from "@/lib/supabase";
+import MapView from "@/components/MapView";
 import {
   SERVING_SIZES,
   SERVING_LABELS,
@@ -10,7 +11,7 @@ import {
   type ServingSize,
   type Spot,
 } from "@/lib/types";
-import type { LatLng } from "@/hooks/useGeolocation";
+import { DEFAULT_CENTER, type LatLng } from "@/hooks/useGeolocation";
 
 interface ChosenPlace {
   lat: number;
@@ -59,6 +60,13 @@ export default function AddSpotWizard({
   const [searching, setSearching] = useState(false);
   const [place, setPlace] = useState<ChosenPlace | null>(null);
 
+  // Colocação manual de um pin no mapa.
+  const [picking, setPicking] = useState(false);
+  const [pinned, setPinned] = useState<LatLng | null>(null);
+  const [pinAddress, setPinAddress] = useState<string | null>(null);
+  const [pinLoading, setPinLoading] = useState(false);
+  const pinReqId = useRef(0);
+
   // Passos seguintes
   const [price, setPrice] = useState("");
   const [priceImperial, setPriceImperial] = useState("");
@@ -74,6 +82,10 @@ export default function AddSpotWizard({
     setName("");
     setResults([]);
     setPlace(null);
+    setPicking(false);
+    setPinned(null);
+    setPinAddress(null);
+    setPinLoading(false);
     setPrice("");
     setPriceImperial("");
     setServing(null);
@@ -158,6 +170,48 @@ export default function AddSpotWizard({
       osm_id: null,
     });
     setResults([]);
+  }
+
+  function startPicking() {
+    setResults([]);
+    setPinned(null);
+    setPinAddress(null);
+    setPicking(true);
+  }
+
+  // Coloca/move o pin e tenta obter a morada por geocodificação inversa.
+  async function handleMapPick(p: LatLng) {
+    const reqId = ++pinReqId.current;
+    setPinned(p);
+    setPinAddress(null);
+    setPinLoading(true);
+    try {
+      const params = new URLSearchParams({
+        lat: String(p.lat),
+        lng: String(p.lng),
+      });
+      const res = await fetch(`/api/search?${params}`);
+      const data = (await res.json()) as PlaceResult[];
+      // Ignora se entretanto foi colocado um pin mais recente.
+      if (reqId === pinReqId.current) setPinAddress(data[0]?.address ?? null);
+    } catch {
+      if (reqId === pinReqId.current) setPinAddress(null);
+    } finally {
+      if (reqId === pinReqId.current) setPinLoading(false);
+    }
+  }
+
+  function confirmPin() {
+    if (!pinned) return;
+    setPlace({
+      lat: pinned.lat,
+      lng: pinned.lng,
+      address: pinAddress,
+      osm_id: null,
+    });
+    setPicking(false);
+    setPinned(null);
+    setPinAddress(null);
   }
 
   const canAdvance =
@@ -260,7 +314,7 @@ export default function AddSpotWizard({
                   <span>✓</span>
                   <span>
                     Localização escolhida
-                    {place.address ? `: ${place.address}` : " (a minha localização)"}
+                    {place.address ? `: ${place.address}` : ""}
                     <button
                       onClick={() => setPlace(null)}
                       className="ml-2 underline"
@@ -268,6 +322,47 @@ export default function AddSpotWizard({
                       alterar
                     </button>
                   </span>
+                </div>
+              ) : picking ? (
+                <div className="mt-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-stone-500">
+                      Toca no mapa para colocar o pin.
+                    </p>
+                    <button
+                      onClick={() => {
+                        setPicking(false);
+                        setPinned(null);
+                        setPinAddress(null);
+                      }}
+                      className="text-xs text-stone-500 underline"
+                    >
+                      cancelar
+                    </button>
+                  </div>
+                  <div className="mt-2 h-64 overflow-hidden rounded-lg border border-stone-200">
+                    <MapView
+                      center={userPosition ?? DEFAULT_CENTER}
+                      zoom={15}
+                      pending={pinned}
+                      onMapClick={handleMapPick}
+                    />
+                  </div>
+                  {pinned && (
+                    <div className="mt-2 flex items-center gap-3 rounded-lg bg-stone-50 p-3">
+                      <span className="min-w-0 flex-1 text-xs text-stone-500">
+                        {pinLoading
+                          ? "A obter morada…"
+                          : pinAddress ?? "Ponto sem morada conhecida"}
+                      </span>
+                      <button
+                        onClick={confirmPin}
+                        className="shrink-0 rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-white hover:opacity-90"
+                      >
+                        Usar este ponto
+                      </button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <>
@@ -299,6 +394,12 @@ export default function AddSpotWizard({
                     className="mt-3 w-full rounded-lg border border-dashed border-stone-300 px-3 py-2 text-sm text-stone-600 hover:bg-stone-50 disabled:opacity-50"
                   >
                     📍 Não encontras? Usar a minha localização atual
+                  </button>
+                  <button
+                    onClick={startPicking}
+                    className="mt-2 w-full rounded-lg border border-dashed border-stone-300 px-3 py-2 text-sm text-stone-600 hover:bg-stone-50"
+                  >
+                    🗺️ Escolher um ponto no mapa
                   </button>
                 </>
               )}
