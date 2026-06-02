@@ -231,7 +231,7 @@ export default function AddSpotWizard({
   const canAdvance =
     step === 1
       ? name.trim().length > 0 && !!place
-      : step === 4
+      : step === 2
         ? !!serving
         : true;
 
@@ -421,7 +421,7 @@ export default function AddSpotWizard({
             </div>
           )}
 
-          {step === 2 && (
+          {step === 3 && (
             <div>
               <label className="block text-sm font-medium text-stone-700">
                 Preço da dose de caracóis (opcional)
@@ -440,7 +440,7 @@ export default function AddSpotWizard({
             </div>
           )}
 
-          {step === 3 && (
+          {step === 4 && (
             <div>
               <label className="block text-sm font-medium text-stone-700">
                 Preço da imperial 🍺 (opcional)
@@ -462,7 +462,7 @@ export default function AddSpotWizard({
             </div>
           )}
 
-          {step === 4 && (
+          {step === 2 && (
             <div>
               <p className="text-sm font-medium text-stone-700">
                 Onde vais comer?

@@ -8,6 +8,7 @@ import { Stars, formatPrice } from "@/components/SpotCard";
 import MapView from "@/components/MapView";
 import ShareButtons from "@/components/ShareButtons";
 import EditSpotButton from "@/components/EditSpotButton";
+import DeleteSpotButton from "@/components/DeleteSpotButton";
 
 export const dynamic = "force-dynamic";
 
@@ -120,9 +121,12 @@ export default async function SpotPage({
             </p>
           )}
 
-          <div className="mt-4 flex items-center justify-between gap-3">
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
             <p className="text-xs text-stone-400">Adicionado a {created}</p>
-            <EditSpotButton spot={spot} />
+            <div className="flex items-center gap-2">
+              <EditSpotButton spot={spot} />
+              <DeleteSpotButton id={spot.id} />
+            </div>
           </div>
 
           <hr className="my-5 border-stone-100" />
