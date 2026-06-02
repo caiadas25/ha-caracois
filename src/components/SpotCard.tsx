@@ -1,5 +1,5 @@
 import type { Spot } from "@/lib/types";
-import { SERVING_LABELS } from "@/lib/types";
+import { SERVING_LABELS, SERVICE_ICONS } from "@/lib/types";
 
 export function Stars({ value }: { value: number }) {
   return (
@@ -33,7 +33,7 @@ export default function SpotCard({ spot }: { spot: Spot }) {
       <div className="mt-2 flex items-center gap-2 text-sm">
         <Stars value={spot.rating} />
         <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
-          {SERVING_LABELS[spot.serving_size]}
+          {SERVICE_ICONS[spot.service_type]} {SERVING_LABELS[spot.serving_size]}
         </span>
       </div>
       {(price || priceImperial) && (

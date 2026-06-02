@@ -4,10 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { supabase, SPOTS_TABLE } from "@/lib/supabase";
 import MapView from "@/components/MapView";
 import {
-  SERVING_SIZES,
+  SERVICE_TYPES,
+  SERVICE_LABELS,
+  SERVING_SIZES_BY_SERVICE,
   SERVING_LABELS,
   SERVING_DESCRIPTIONS,
   type PlaceResult,
+  type ServiceType,
   type ServingSize,
   type Spot,
 } from "@/lib/types";
@@ -70,6 +73,7 @@ export default function AddSpotWizard({
   // Passos seguintes
   const [price, setPrice] = useState("");
   const [priceImperial, setPriceImperial] = useState("");
+  const [serviceType, setServiceType] = useState<ServiceType>("restaurante");
   const [serving, setServing] = useState<ServingSize | null>(null);
   const [rating, setRating] = useState(0);
   const [notes, setNotes] = useState("");
@@ -88,6 +92,7 @@ export default function AddSpotWizard({
     setPinLoading(false);
     setPrice("");
     setPriceImperial("");
+    setServiceType("restaurante");
     setServing(null);
     setRating(0);
     setNotes("");
@@ -110,6 +115,7 @@ export default function AddSpotWizard({
       });
       setPrice(priceToInput(spot.price));
       setPriceImperial(priceToInput(spot.price_imperial));
+      setServiceType(spot.service_type);
       setServing(spot.serving_size);
       setRating(spot.rating);
       setNotes(spot.notes ?? "");
@@ -201,6 +207,14 @@ export default function AddSpotWizard({
     }
   }
 
+  // Troca o tipo de serviço e limpa a dose se já não for válida.
+  function chooseServiceType(t: ServiceType) {
+    setServiceType(t);
+    setServing((prev) =>
+      prev && SERVING_SIZES_BY_SERVICE[t].includes(prev) ? prev : null,
+    );
+  }
+
   function confirmPin() {
     if (!pinned) return;
     setPlace({
@@ -233,6 +247,7 @@ export default function AddSpotWizard({
       address: place.address,
       price: parsePrice(price),
       price_imperial: parsePrice(priceImperial),
+      service_type: serviceType,
       serving_size: serving,
       rating,
       notes: notes.trim() || null,
@@ -450,10 +465,31 @@ export default function AddSpotWizard({
           {step === 4 && (
             <div>
               <p className="text-sm font-medium text-stone-700">
-                Tamanho da dose
+                Onde vais comer?
+              </p>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {SERVICE_TYPES.map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => chooseServiceType(t)}
+                    className={`rounded-lg border px-4 py-3 text-center text-sm font-medium ${
+                      serviceType === t
+                        ? "border-brand bg-amber-50 text-stone-800"
+                        : "border-stone-200 text-stone-600 hover:bg-stone-50"
+                    }`}
+                  >
+                    {SERVICE_LABELS[t]}
+                  </button>
+                ))}
+              </div>
+
+              <p className="mt-4 text-sm font-medium text-stone-700">
+                {serviceType === "takeaway"
+                  ? "Tamanho da embalagem"
+                  : "Tamanho da dose"}
               </p>
               <div className="mt-2 space-y-2">
-                {SERVING_SIZES.map((s) => (
+                {SERVING_SIZES_BY_SERVICE[serviceType].map((s) => (
                   <button
                     key={s}
                     onClick={() => setServing(s)}

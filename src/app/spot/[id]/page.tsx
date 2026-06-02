@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { supabase, SPOTS_TABLE } from "@/lib/supabase";
 import type { Spot } from "@/lib/types";
-import { SERVING_LABELS } from "@/lib/types";
+import { SERVING_LABELS, SERVICE_LABELS, SERVICE_ICONS } from "@/lib/types";
 import { Stars, formatPrice } from "@/components/SpotCard";
 import MapView from "@/components/MapView";
 import ShareButtons from "@/components/ShareButtons";
@@ -32,6 +32,7 @@ export async function generateMetadata({
   const imperial = formatPrice(spot.price_imperial);
   const bits = [
     `${spot.rating}/5 ★`,
+    SERVICE_LABELS[spot.service_type],
     SERVING_LABELS[spot.serving_size],
     formatPrice(spot.price),
     imperial ? `imperial ${imperial}` : null,
@@ -98,6 +99,7 @@ export default async function SpotPage({
               <Stars value={spot.rating} />
             </span>
             <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-800">
+              {SERVICE_ICONS[spot.service_type]}{" "}
               {SERVING_LABELS[spot.serving_size]}
             </span>
             {price && (
