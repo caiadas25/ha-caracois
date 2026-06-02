@@ -79,7 +79,7 @@ export default function Home() {
         open={wizardOpen}
         onClose={() => setWizardOpen(false)}
         userPosition={position}
-        onCreated={handleCreated}
+        onSaved={handleCreated}
       />
     </main>
   );

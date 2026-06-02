@@ -7,6 +7,7 @@ import { SERVING_LABELS } from "@/lib/types";
 import { Stars, formatPrice } from "@/components/SpotCard";
 import MapView from "@/components/MapView";
 import ShareButtons from "@/components/ShareButtons";
+import EditSpotButton from "@/components/EditSpotButton";
 
 export const dynamic = "force-dynamic";
 
@@ -28,10 +29,12 @@ export async function generateMetadata({
   const spot = await getSpot(id);
   if (!spot) return { title: "Local não encontrado — Há Caracóis" };
 
+  const imperial = formatPrice(spot.price_imperial);
   const bits = [
     `${spot.rating}/5 ★`,
     SERVING_LABELS[spot.serving_size],
     formatPrice(spot.price),
+    imperial ? `imperial ${imperial}` : null,
     spot.address,
   ].filter(Boolean);
   const description = bits.join(" · ");
@@ -57,6 +60,7 @@ export default async function SpotPage({
   if (!spot) notFound();
 
   const price = formatPrice(spot.price);
+  const priceImperial = formatPrice(spot.price_imperial);
   const created = new Date(spot.created_at).toLocaleDateString("pt-PT", {
     day: "numeric",
     month: "long",
@@ -97,7 +101,14 @@ export default async function SpotPage({
               {SERVING_LABELS[spot.serving_size]}
             </span>
             {price && (
-              <span className="text-lg font-semibold text-brand">{price}</span>
+              <span className="text-lg font-semibold text-brand">
+                🐌 {price}
+              </span>
+            )}
+            {priceImperial && (
+              <span className="text-lg font-semibold text-brand">
+                🍺 {priceImperial}
+              </span>
             )}
           </div>
 
@@ -107,7 +118,10 @@ export default async function SpotPage({
             </p>
           )}
 
-          <p className="mt-4 text-xs text-stone-400">Adicionado a {created}</p>
+          <div className="mt-4 flex items-center justify-between gap-3">
+            <p className="text-xs text-stone-400">Adicionado a {created}</p>
+            <EditSpotButton spot={spot} />
+          </div>
 
           <hr className="my-5 border-stone-100" />
 

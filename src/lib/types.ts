@@ -7,6 +7,8 @@ export interface Spot {
   lng: number;
   address: string | null;
   price: number | null;
+  /** Preço da imperial (cerveja), opcional. */
+  price_imperial: number | null;
   serving_size: ServingSize;
   rating: number;
   notes: string | null;

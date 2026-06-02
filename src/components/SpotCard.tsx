@@ -21,6 +21,7 @@ export function formatPrice(price: number | null): string | null {
 /** Cartão compacto mostrado no popup do mapa ao clicar num ponto. */
 export default function SpotCard({ spot }: { spot: Spot }) {
   const price = formatPrice(spot.price);
+  const priceImperial = formatPrice(spot.price_imperial);
   return (
     <div className="w-60 p-3 text-stone-800">
       <h3 className="text-base font-semibold leading-tight">{spot.name}</h3>
@@ -35,8 +36,11 @@ export default function SpotCard({ spot }: { spot: Spot }) {
           {SERVING_LABELS[spot.serving_size]}
         </span>
       </div>
-      {price && (
-        <p className="mt-1 text-sm font-medium text-brand">{price}</p>
+      {(price || priceImperial) && (
+        <p className="mt-1 flex flex-wrap gap-x-3 text-sm font-medium text-brand">
+          {price && <span>🐌 {price}</span>}
+          {priceImperial && <span>🍺 {priceImperial}</span>}
+        </p>
       )}
       {spot.notes && (
         <p className="mt-1 text-xs text-stone-600 line-clamp-3">{spot.notes}</p>

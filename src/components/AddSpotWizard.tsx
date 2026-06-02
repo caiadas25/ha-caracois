@@ -23,17 +23,34 @@ interface Props {
   open: boolean;
   onClose: () => void;
   userPosition: LatLng | null;
-  onCreated: (spot: Spot) => void;
+  onSaved: (spot: Spot) => void;
+  /** Quando presente, o assistente abre em modo de edição. */
+  spot?: Spot | null;
 }
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
+
+/** Converte o texto de um preço (com vírgula ou ponto) num número ou null. */
+function parsePrice(value: string): number | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const parsed = parseFloat(trimmed.replace(",", "."));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+/** Apresenta um número como texto editável (vírgula decimal). */
+function priceToInput(value: number | null): string {
+  return value != null ? String(value).replace(".", ",") : "";
+}
 
 export default function AddSpotWizard({
   open,
   onClose,
   userPosition,
-  onCreated,
+  onSaved,
+  spot = null,
 }: Props) {
+  const editing = !!spot;
   const [step, setStep] = useState(1);
 
   // Passo 1 — nome + localização
@@ -44,6 +61,7 @@ export default function AddSpotWizard({
 
   // Passos seguintes
   const [price, setPrice] = useState("");
+  const [priceImperial, setPriceImperial] = useState("");
   const [serving, setServing] = useState<ServingSize | null>(null);
   const [rating, setRating] = useState(0);
   const [notes, setNotes] = useState("");
@@ -57,12 +75,40 @@ export default function AddSpotWizard({
     setResults([]);
     setPlace(null);
     setPrice("");
+    setPriceImperial("");
     setServing(null);
     setRating(0);
     setNotes("");
     setError(null);
     setSubmitting(false);
   }
+
+  // Ao abrir, preenche os campos a partir do local em edição (ou limpa).
+  useEffect(() => {
+    if (!open) return;
+    if (spot) {
+      setStep(1);
+      setName(spot.name);
+      setResults([]);
+      setPlace({
+        lat: spot.lat,
+        lng: spot.lng,
+        address: spot.address,
+        osm_id: spot.osm_id,
+      });
+      setPrice(priceToInput(spot.price));
+      setPriceImperial(priceToInput(spot.price_imperial));
+      setServing(spot.serving_size);
+      setRating(spot.rating);
+      setNotes(spot.notes ?? "");
+      setError(null);
+      setSubmitting(false);
+    } else {
+      reset();
+    }
+    // Reinicializa apenas quando (re)abre ou muda o local em edição.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, spot]);
 
   function close() {
     reset();
@@ -117,7 +163,7 @@ export default function AddSpotWizard({
   const canAdvance =
     step === 1
       ? name.trim().length > 0 && !!place
-      : step === 3
+      : step === 4
         ? !!serving
         : true;
 
@@ -126,36 +172,32 @@ export default function AddSpotWizard({
     setSubmitting(true);
     setError(null);
 
-    const parsedPrice = price.trim()
-      ? parseFloat(price.replace(",", "."))
-      : null;
+    const payload = {
+      name: name.trim(),
+      lat: place.lat,
+      lng: place.lng,
+      address: place.address,
+      price: parsePrice(price),
+      price_imperial: parsePrice(priceImperial),
+      serving_size: serving,
+      rating,
+      notes: notes.trim() || null,
+      osm_id: place.osm_id,
+    };
 
-    const { data, error: insertError } = await supabase
-      .from(SPOTS_TABLE)
-      .insert({
-        name: name.trim(),
-        lat: place.lat,
-        lng: place.lng,
-        address: place.address,
-        price:
-          parsedPrice != null && Number.isFinite(parsedPrice)
-            ? parsedPrice
-            : null,
-        serving_size: serving,
-        rating,
-        notes: notes.trim() || null,
-        osm_id: place.osm_id,
-      })
-      .select()
-      .single();
+    const query = editing
+      ? supabase.from(SPOTS_TABLE).update(payload).eq("id", spot!.id)
+      : supabase.from(SPOTS_TABLE).insert(payload);
 
-    if (insertError || !data) {
-      setError(insertError?.message ?? "Não foi possível guardar. Tenta de novo.");
+    const { data, error: saveError } = await query.select().single();
+
+    if (saveError || !data) {
+      setError(saveError?.message ?? "Não foi possível guardar. Tenta de novo.");
       setSubmitting(false);
       return;
     }
 
-    onCreated(data as Spot);
+    onSaved(data as Spot);
     close();
   }
 
@@ -172,7 +214,7 @@ export default function AddSpotWizard({
         <div className="flex items-center justify-between border-b border-stone-100 px-5 py-3">
           <div>
             <h2 className="text-lg font-bold text-stone-800">
-              Adicionar local 🐌
+              {editing ? "Editar local 🐌" : "Adicionar local 🐌"}
             </h2>
             <p className="text-xs text-stone-400">
               Passo {step} de {TOTAL_STEPS}
@@ -266,7 +308,7 @@ export default function AddSpotWizard({
           {step === 2 && (
             <div>
               <label className="block text-sm font-medium text-stone-700">
-                Preço da dose (opcional)
+                Preço da dose de caracóis (opcional)
               </label>
               <div className="mt-1 flex items-center gap-2">
                 <input
@@ -283,6 +325,28 @@ export default function AddSpotWizard({
           )}
 
           {step === 3 && (
+            <div>
+              <label className="block text-sm font-medium text-stone-700">
+                Preço da imperial 🍺 (opcional)
+              </label>
+              <p className="mt-0.5 text-xs text-stone-400">
+                O acompanhamento obrigatório. Deixa em branco se não souberes.
+              </p>
+              <div className="mt-1 flex items-center gap-2">
+                <input
+                  autoFocus
+                  inputMode="decimal"
+                  value={priceImperial}
+                  onChange={(e) => setPriceImperial(e.target.value)}
+                  placeholder="Ex.: 1,20"
+                  className="w-full rounded-lg border border-stone-300 px-3 py-2 text-stone-800 outline-none focus:border-brand"
+                />
+                <span className="text-lg text-stone-500">€</span>
+              </div>
+            </div>
+          )}
+
+          {step === 4 && (
             <div>
               <p className="text-sm font-medium text-stone-700">
                 Tamanho da dose
@@ -313,7 +377,7 @@ export default function AddSpotWizard({
             </div>
           )}
 
-          {step === 4 && (
+          {step === 5 && (
             <div>
               <p className="text-sm font-medium text-stone-700">Avaliação</p>
               <div className="mt-2 flex items-center gap-1">
@@ -338,7 +402,7 @@ export default function AddSpotWizard({
             </div>
           )}
 
-          {step === 5 && (
+          {step === 6 && (
             <div>
               <label className="block text-sm font-medium text-stone-700">
                 Notas (opcional)
@@ -386,7 +450,11 @@ export default function AddSpotWizard({
               disabled={submitting}
               className="rounded-lg bg-brand px-5 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-60"
             >
-              {submitting ? "A guardar…" : "Guardar local"}
+              {submitting
+                ? "A guardar…"
+                : editing
+                  ? "Guardar alterações"
+                  : "Guardar local"}
             </button>
           )}
         </div>
