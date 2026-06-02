@@ -48,3 +48,8 @@ body {
 .leaflet-container {
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
+/* O Leaflet força uma cor azul em todos os links (.leaflet-container a),
+   o que tornava o botão do cartão azul. Mantemos o texto branco. */
+.leaflet-popup-content a {
+  color: #fff !important;
+}
