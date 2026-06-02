@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import MapView from "@/components/MapView";
 import AddSpotWizard from "@/components/AddSpotWizard";
+import Leaderboard from "@/components/Leaderboard";
 import { supabase, SPOTS_TABLE } from "@/lib/supabase";
 import type { Spot } from "@/lib/types";
 import {
@@ -59,6 +60,12 @@ export default function Home() {
       <div className="absolute inset-0">
         <MapView center={center} zoom={CITY_ZOOM} spots={spots} />
       </div>
+
+      {/* Tabela de classificação */}
+      <Leaderboard
+        spots={spots}
+        onSelect={(spot) => setCenter({ lat: spot.lat, lng: spot.lng })}
+      />
 
       {/* Aviso de geolocalização recusada */}
       {denied && (
