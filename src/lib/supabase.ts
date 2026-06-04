@@ -8,7 +8,7 @@ import { createClient } from "@supabase/supabase-js";
 const FALLBACK_SUPABASE_URL = "https://wmjbifxydtgkpchqcqou.supabase.co";
 const FALLBACK_SUPABASE_ANON_KEY = "sb_publishable_y8NBkx3QA54Ex1G-yheKWQ_D6at11zm";
 
-const supabaseUrl =
+export const SUPABASE_URL =
   process.env.NEXT_PUBLIC_SUPABASE_URL || FALLBACK_SUPABASE_URL;
 const supabaseAnonKey =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || FALLBACK_SUPABASE_ANON_KEY;
@@ -17,8 +17,9 @@ const supabaseAnonKey =
  * Cliente Supabase partilhado. A tabela `caracois_spots` tem RLS com leitura e
  * inserção públicas (anon), por isso não é necessária autenticação.
  */
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient(SUPABASE_URL, supabaseAnonKey, {
   auth: { persistSession: false },
 });
 
 export const SPOTS_TABLE = "caracois_spots";
+export const SPOT_REQUESTS_TABLE = "caracois_spot_requests";

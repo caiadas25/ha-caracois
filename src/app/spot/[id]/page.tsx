@@ -9,6 +9,8 @@ import MapView from "@/components/MapView";
 import ShareButtons from "@/components/ShareButtons";
 import EditSpotButton from "@/components/EditSpotButton";
 import DeleteSpotButton from "@/components/DeleteSpotButton";
+import RequestSpotChangeButton from "@/components/RequestSpotChangeButton";
+import { isAdminSession } from "@/lib/adminAuth";
 
 export const dynamic = "force-dynamic";
 
@@ -60,6 +62,7 @@ export default async function SpotPage({
   const { id } = await params;
   const spot = await getSpot(id);
   if (!spot) notFound();
+  const isAdmin = await isAdminSession();
 
   const price = formatPrice(spot.price);
   const priceImperial = formatPrice(spot.price_imperial);
@@ -123,10 +126,16 @@ export default async function SpotPage({
 
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
             <p className="text-xs text-stone-400">Adicionado a {created}</p>
-            <div className="flex items-center gap-2">
-              <EditSpotButton spot={spot} />
-              <DeleteSpotButton id={spot.id} />
-            </div>
+            {isAdmin ? (
+              <div className="flex items-center gap-2">
+                <EditSpotButton spot={spot} />
+                <DeleteSpotButton id={spot.id} />
+              </div>
+            ) : (
+              <div className="w-full sm:w-64">
+                <RequestSpotChangeButton spotId={spot.id} />
+              </div>
+            )}
           </div>
 
           <hr className="my-5 border-stone-100" />

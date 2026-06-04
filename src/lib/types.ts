@@ -73,3 +73,16 @@ export interface PlaceResult {
   lat: number;
   lng: number;
 }
+
+export type SpotRequestType = "edit" | "delete";
+export type SpotRequestStatus = "open" | "resolved";
+
+export interface SpotRequest {
+  id: string;
+  spot_id: string;
+  request_type: SpotRequestType;
+  note: string;
+  status: SpotRequestStatus;
+  created_at: string;
+  resolved_at: string | null;
+}

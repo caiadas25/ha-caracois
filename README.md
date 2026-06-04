@@ -34,6 +34,9 @@ Copia `.env.example` para `.env.local` e preenche:
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://<projeto>.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_xxx
+SUPABASE_SERVICE_ROLE_KEY=<server-only service role key>
+ADMIN_PASSWORD=<password para /admin>
+ADMIN_SESSION_SECRET=<segredo longo para assinar a sessão>
 ```
 
 ```bash
@@ -59,7 +62,26 @@ Os dados ficam na tabela `caracois_spots` (projeto Supabase `workout-logbook`):
 | `osm_id` | text | id do OpenStreetMap, se aplicável |
 | `created_at` | timestamptz | automático |
 
-RLS ativo com políticas de **leitura** e **inserção** públicas (`anon`).
+Pedidos de edição/remoção ficam na tabela `caracois_spot_requests`:
+
+| coluna | tipo | notas |
+| --- | --- | --- |
+| `id` | uuid | PK |
+| `spot_id` | uuid | FK para `caracois_spots.id` |
+| `request_type` | text | `edit` \| `delete` |
+| `note` | text | nota do utilizador para o admin |
+| `status` | text | `open` por omissão; `resolved` quando tratado |
+| `created_at` | timestamptz | automático |
+| `resolved_at` | timestamptz | opcional |
+
+Podes criar esta tabela com o script `supabase/admin_requests.sql`.
+
+RLS ativo com políticas de **leitura** e **inserção** públicas (`anon`) para locais.
+Para reduzir fricção, os utilizadores anónimos podem inserir pedidos em
+`caracois_spot_requests`; a listagem de pedidos e os botões de editar/apagar
+ficam atrás da página `/admin`, protegida por cookie assinado. Em produção,
+remove políticas públicas de update/delete em `caracois_spots` e faz operações
+de admin apenas com `SUPABASE_SERVICE_ROLE_KEY` no servidor.
 
 ## Deploy
 
