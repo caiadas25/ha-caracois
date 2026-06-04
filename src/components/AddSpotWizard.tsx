@@ -254,19 +254,39 @@ export default function AddSpotWizard({
       osm_id: place.osm_id,
     };
 
-    const query = editing
-      ? supabase.from(SPOTS_TABLE).update(payload).eq("id", spot!.id)
-      : supabase.from(SPOTS_TABLE).insert(payload);
+    if (editing) {
+      const response = await fetch(`/api/admin/spots/${spot!.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const body = (await response.json().catch(() => ({}))) as {
+        spot?: Spot;
+        error?: string;
+      };
 
-    const { data, error: saveError } = await query.select().single();
+      if (!response.ok || !body.spot) {
+        setError(body.error ?? "Não foi possível guardar. Tenta de novo.");
+        setSubmitting(false);
+        return;
+      }
 
-    if (saveError || !data) {
-      setError(saveError?.message ?? "Não foi possível guardar. Tenta de novo.");
-      setSubmitting(false);
-      return;
+      onSaved(body.spot);
+    } else {
+      const { data, error: saveError } = await supabase
+        .from(SPOTS_TABLE)
+        .insert(payload)
+        .select()
+        .single();
+
+      if (saveError || !data) {
+        setError(saveError?.message ?? "Não foi possível guardar. Tenta de novo.");
+        setSubmitting(false);
+        return;
+      }
+
+      onSaved(data as Spot);
     }
-
-    onSaved(data as Spot);
     close();
   }
 

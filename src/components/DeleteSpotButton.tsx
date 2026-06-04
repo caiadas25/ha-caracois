@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase, SPOTS_TABLE } from "@/lib/supabase";
 
 /** Botão para apagar um local, com confirmação em dois passos. */
 export default function DeleteSpotButton({ id }: { id: string }) {
@@ -14,13 +13,11 @@ export default function DeleteSpotButton({ id }: { id: string }) {
   async function remove() {
     setDeleting(true);
     setError(null);
-    const { error: deleteError } = await supabase
-      .from(SPOTS_TABLE)
-      .delete()
-      .eq("id", id);
+    const response = await fetch(`/api/admin/spots/${id}`, { method: "DELETE" });
 
-    if (deleteError) {
-      setError(deleteError.message);
+    if (!response.ok) {
+      const body = (await response.json().catch(() => ({}))) as { error?: string };
+      setError(body.error ?? "Não foi possível apagar.");
       setDeleting(false);
       return;
     }
