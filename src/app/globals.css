@@ -99,10 +99,7 @@ body {
   }
 
   .leaflet-control-zoom {
-    overflow: hidden;
-    border: 0 !important;
-    border-radius: 10px;
-    box-shadow: 0 10px 24px rgba(42, 33, 24, 0.16);
+    display: none;
   }
 
   .leaflet-touch .leaflet-control-zoom a {
