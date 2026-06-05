@@ -55,6 +55,44 @@ body {
 }
 
 @media (max-width: 639px) {
+  .mobile-leaderboard-sheet {
+    bottom: calc(env(safe-area-inset-bottom) + 1.75rem);
+    max-height: min(46dvh, calc(100dvh - env(safe-area-inset-top) - 6rem));
+    border-radius: 1rem;
+    overflow: visible;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .mobile-leaderboard-header {
+    width: calc(100% - 7.75rem);
+    height: 3.5rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 14px 30px rgba(42, 33, 24, 0.18);
+    backdrop-filter: blur(8px);
+    padding-bottom: 0.625rem;
+    padding-top: 0.625rem;
+  }
+
+  .mobile-leaderboard-body {
+    margin-top: 0.5rem;
+    overflow: hidden;
+    border: 0;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 18px 34px rgba(42, 33, 24, 0.2);
+    backdrop-filter: blur(8px);
+  }
+
+  .mobile-leaderboard-add {
+    top: 0;
+    right: 0;
+    bottom: auto;
+    height: 3.5rem;
+  }
+
   .leaflet-top.leaflet-left {
     left: 0.75rem;
     top: calc(env(safe-area-inset-top) + 4.75rem);
