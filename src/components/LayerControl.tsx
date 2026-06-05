@@ -30,7 +30,10 @@ export default function LayerControl({ activeId, onSelect }: LayerControlProps) 
   }, [open]);
 
   return (
-    <div ref={ref} className="absolute right-3 top-3 z-[1000]">
+    <div
+      ref={ref}
+      className="absolute right-3 top-[calc(env(safe-area-inset-top)+0.75rem)] z-[1000] sm:top-3"
+    >
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}

@@ -7,12 +7,14 @@ interface Props {
   spots: Spot[];
   /** Chamado ao clicar num local — útil para recentrar o mapa. */
   onSelect?: (spot: Spot) => void;
+  /** Abre o assistente para adicionar um novo local. */
+  onAdd?: () => void;
 }
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
 /** Widget com os 10 locais mais bem avaliados, com filtro por cidade. */
-export default function Leaderboard({ spots, onSelect }: Props) {
+export default function Leaderboard({ spots, onSelect, onAdd }: Props) {
   const [city, setCity] = useState("");
   const [open, setOpen] = useState(true);
 
@@ -30,28 +32,44 @@ export default function Leaderboard({ spots, onSelect }: Props) {
   }, [spots, city]);
 
   return (
-    <div className="absolute bottom-6 left-6 z-[1000] w-72 max-w-[calc(100vw-3rem)] overflow-hidden rounded-2xl bg-white/95 shadow-xl backdrop-blur">
+    <div className="absolute inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] z-[1000] flex max-h-[42dvh] flex-col overflow-hidden rounded-xl bg-white/95 shadow-2xl backdrop-blur sm:bottom-6 sm:left-6 sm:right-auto sm:max-h-none sm:w-72 sm:max-w-[calc(100vw-3rem)] sm:shadow-xl">
       {/* Cabeçalho / interruptor */}
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between px-4 py-3 text-left"
-        aria-expanded={open}
-      >
-        <span className="flex items-center gap-2 font-bold text-stone-800">
-          🏆 Melhores locais
-        </span>
-        <span className="text-stone-400">{open ? "▾" : "▸"}</span>
-      </button>
+      <div className="flex items-center gap-2 px-4 py-3">
+        <button
+          onClick={() => setOpen((o) => !o)}
+          className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left"
+          aria-expanded={open}
+        >
+          <span className="flex min-w-0 items-center gap-2 font-bold text-stone-800">
+            <span aria-hidden>🏆</span>
+            <span className="truncate">Melhores locais</span>
+          </span>
+          <span className="shrink-0 text-stone-400">{open ? "▾" : "▸"}</span>
+        </button>
+        {onAdd && (
+          <button
+            type="button"
+            onClick={onAdd}
+            className="flex shrink-0 items-center gap-1.5 rounded-full bg-brand px-3 py-2 text-sm font-semibold text-white shadow-md transition active:scale-95 sm:hidden"
+            aria-label="Adicionar local"
+          >
+            <span className="text-lg leading-none" aria-hidden>
+              ＋
+            </span>
+            <span className="hidden min-[390px]:inline">Adicionar</span>
+          </button>
+        )}
+      </div>
 
       {open && (
-        <div className="border-t border-stone-100">
+        <div className="flex min-h-0 flex-col border-t border-stone-100">
           {/* Filtro por cidade */}
-          <div className="p-3">
+          <div className="shrink-0 p-3">
             <input
               value={city}
               onChange={(e) => setCity(e.target.value)}
               placeholder="Filtrar por cidade…"
-              className="w-full rounded-lg border border-stone-300 px-3 py-1.5 text-sm text-stone-800 outline-none focus:border-brand"
+              className="w-full rounded-lg border border-stone-300 px-3 py-2 text-base text-stone-800 outline-none focus:border-brand sm:py-1.5 sm:text-sm"
             />
           </div>
 
@@ -63,12 +81,12 @@ export default function Leaderboard({ spots, onSelect }: Props) {
                 : "Ainda não há locais."}
             </p>
           ) : (
-            <ol className="max-h-72 overflow-y-auto pb-2">
+            <ol className="min-h-0 overflow-y-auto pb-2 sm:max-h-72">
               {top.map((spot, i) => (
                 <li key={spot.id}>
                   <button
                     onClick={() => onSelect?.(spot)}
-                    className="flex w-full items-center gap-3 px-4 py-2 text-left hover:bg-stone-50"
+                    className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-stone-50 sm:py-2"
                   >
                     <span className="w-6 shrink-0 text-center text-sm font-semibold text-stone-500">
                       {MEDALS[i] ?? i + 1}

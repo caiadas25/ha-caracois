@@ -49,10 +49,10 @@ export default function Home() {
   return (
     <main className="relative h-dvh w-full overflow-hidden">
       {/* Cabeçalho */}
-      <header className="pointer-events-none absolute inset-x-0 top-0 z-[1000] flex justify-center p-3">
-        <div className="pointer-events-auto flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 shadow-lg backdrop-blur">
+      <header className="pointer-events-none absolute inset-x-0 top-0 z-[1001] flex justify-center px-3 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] sm:p-3">
+        <div className="pointer-events-auto flex h-12 max-w-[calc(100vw-2rem)] items-center gap-2 rounded-full bg-white/95 px-4 shadow-lg backdrop-blur sm:h-auto sm:py-2">
           <span className="text-xl">🐌</span>
-          <span className="font-bold text-stone-800">Há Caracóis</span>
+          <span className="truncate font-bold text-stone-800">Há Caracóis</span>
         </div>
       </header>
 
@@ -65,11 +65,12 @@ export default function Home() {
       <Leaderboard
         spots={spots}
         onSelect={(spot) => setCenter({ lat: spot.lat, lng: spot.lng })}
+        onAdd={() => setWizardOpen(true)}
       />
 
       {/* Aviso de geolocalização recusada */}
       {denied && (
-        <div className="absolute inset-x-0 bottom-24 z-[1000] mx-auto w-fit max-w-[90%] rounded-full bg-stone-800/90 px-4 py-2 text-center text-xs text-white">
+        <div className="absolute inset-x-0 top-[calc(env(safe-area-inset-top)+4.75rem)] z-[1000] mx-auto w-fit max-w-[90%] rounded-full bg-stone-800/90 px-4 py-2 text-center text-xs text-white sm:bottom-24 sm:top-auto">
           Localização indisponível — a mostrar Lisboa.
         </div>
       )}
@@ -77,7 +78,7 @@ export default function Home() {
       {/* Botão de adicionar */}
       <button
         onClick={() => setWizardOpen(true)}
-        className="absolute bottom-6 right-6 z-[1000] flex items-center gap-2 rounded-full bg-brand px-5 py-3 font-semibold text-white shadow-xl transition hover:scale-105 active:scale-95"
+        className="absolute bottom-6 right-6 z-[1000] hidden items-center gap-2 rounded-full bg-brand px-5 py-3 font-semibold text-white shadow-xl transition hover:scale-105 active:scale-95 sm:flex"
       >
         <span className="text-lg leading-none">＋</span> Adicionar
       </button>
