@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/adminAuth";
 import { getAdminSupabase } from "@/lib/adminSupabase";
+import { isUuid, rejectCrossOriginRequest } from "@/lib/requestSecurity";
 import { SPOTS_TABLE } from "@/lib/supabase";
 import { parseSpotPayload } from "@/lib/spotValidation";
 import type { Spot } from "@/lib/types";
@@ -9,11 +10,18 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const crossOrigin = rejectCrossOriginRequest(request);
+  if (crossOrigin) return crossOrigin;
+
   if (!(await isAdminAuthenticated())) {
     return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
   }
 
   const { id } = await params;
+  if (!isUuid(id)) {
+    return NextResponse.json({ error: "Local inválido." }, { status: 400 });
+  }
+
   let payload;
   try {
     payload = parseSpotPayload(await request.json());
@@ -49,14 +57,20 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const crossOrigin = rejectCrossOriginRequest(request);
+  if (crossOrigin) return crossOrigin;
+
   if (!(await isAdminAuthenticated())) {
     return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
   }
 
   const { id } = await params;
+  if (!isUuid(id)) {
+    return NextResponse.json({ error: "Local inválido." }, { status: 400 });
+  }
 
   try {
     const adminSupabase = getAdminSupabase();

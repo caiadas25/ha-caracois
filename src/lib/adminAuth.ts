@@ -4,7 +4,7 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 
 const ADMIN_COOKIE = "ha_caracois_admin";
-const SESSION_MS = 7 * 24 * 60 * 60 * 1000;
+const SESSION_MS = 24 * 60 * 60 * 1000;
 
 function getSessionSecret() {
   return process.env.ADMIN_SESSION_SECRET;

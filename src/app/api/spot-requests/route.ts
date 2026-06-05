@@ -1,18 +1,20 @@
 import { NextResponse } from "next/server";
 import { getAdminSupabase } from "@/lib/adminSupabase";
+import {
+  isUuid,
+  rateLimitByIp,
+  rejectCrossOriginRequest,
+} from "@/lib/requestSecurity";
 import { SPOT_REQUESTS_TABLE, SPOTS_TABLE } from "@/lib/supabase";
 import type { Spot, SpotRequestType } from "@/lib/types";
 
-function isUuid(value: unknown): value is string {
-  return (
-    typeof value === "string" &&
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-      value,
-    )
-  );
-}
-
 export async function POST(request: Request) {
+  const crossOrigin = rejectCrossOriginRequest(request);
+  if (crossOrigin) return crossOrigin;
+
+  const limited = rateLimitByIp(request, "spot-requests:create", 10, 60 * 60 * 1000);
+  if (limited) return limited;
+
   let body: unknown;
   try {
     body = await request.json();

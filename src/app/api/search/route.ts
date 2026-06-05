@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { rateLimitByIp } from "@/lib/requestSecurity";
 import type { PlaceResult } from "@/lib/types";
 
 // Tipagem parcial da resposta do Nominatim.
@@ -15,6 +16,23 @@ interface NominatimItem {
 const NOMINATIM_HEADERS = {
   "User-Agent": "HaCaracois/1.0 (https://github.com/caiadas25/ha-caracois)",
 };
+
+function parseLatLng(lat: string | null, lng: string | null) {
+  if (!lat || !lng) return null;
+  const la = parseFloat(lat);
+  const ln = parseFloat(lng);
+  if (
+    !Number.isFinite(la) ||
+    !Number.isFinite(ln) ||
+    la < -90 ||
+    la > 90 ||
+    ln < -180 ||
+    ln > 180
+  ) {
+    return null;
+  }
+  return { la, ln };
+}
 
 /** Geocodificação inversa: dado um ponto, devolve a morada mais próxima. */
 async function reverseGeocode(la: number, ln: number) {
@@ -54,25 +72,29 @@ async function reverseGeocode(la: number, ln: number) {
  * geocodificação inversa (para um pin colocado manualmente no mapa).
  */
 export async function GET(request: Request) {
+  const limited = rateLimitByIp(request, "search", 60, 60 * 1000);
+  if (limited) return limited;
+
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q")?.trim();
   // Coordenadas opcionais para enviesar os resultados para perto do utilizador.
   const lat = searchParams.get("lat");
   const lng = searchParams.get("lng");
 
+  if (q && q.length > 120) {
+    return NextResponse.json<PlaceResult[]>([], { status: 400 });
+  }
+
+  const coords = parseLatLng(lat, lng);
   const hasQuery = !!q && q.length >= 2;
 
   if (!hasQuery) {
     // Sem texto, mas com coordenadas → geocodificação inversa.
-    if (lat && lng) {
-      const la = parseFloat(lat);
-      const ln = parseFloat(lng);
-      if (Number.isFinite(la) && Number.isFinite(ln)) {
-        try {
-          return await reverseGeocode(la, ln);
-        } catch {
-          return NextResponse.json<PlaceResult[]>([], { status: 200 });
-        }
+    if (coords) {
+      try {
+        return await reverseGeocode(coords.la, coords.ln);
+      } catch {
+        return NextResponse.json<PlaceResult[]>([], { status: 200 });
       }
     }
     return NextResponse.json<PlaceResult[]>([]);
@@ -84,17 +106,15 @@ export async function GET(request: Request) {
   url.searchParams.set("limit", "6");
   url.searchParams.set("addressdetails", "1");
   url.searchParams.set("accept-language", "pt");
-  if (lat && lng) {
+  if (coords) {
     // Caixa de ~0.5° à volta do utilizador, sem excluir resultados de fora.
-    const la = parseFloat(lat);
-    const ln = parseFloat(lng);
-    if (Number.isFinite(la) && Number.isFinite(ln)) {
-      url.searchParams.set(
-        "viewbox",
-        `${ln - 0.5},${la + 0.5},${ln + 0.5},${la - 0.5}`,
-      );
-      url.searchParams.set("bounded", "0");
-    }
+    url.searchParams.set(
+      "viewbox",
+      `${coords.ln - 0.5},${coords.la + 0.5},${coords.ln + 0.5},${
+        coords.la - 0.5
+      }`,
+    );
+    url.searchParams.set("bounded", "0");
   }
 
   try {

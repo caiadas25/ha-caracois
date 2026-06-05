@@ -3,13 +3,16 @@ import { SERVING_LABELS, SERVICE_ICONS } from "@/lib/types";
 import SpotRequestButton from "@/components/SpotRequestButton";
 
 export function Stars({ value }: { value: number }) {
+  const safeValue =
+    Number.isInteger(value) && value >= 0 && value <= 5 ? value : 0;
+
   return (
     <span
       className="text-amber-500 tracking-tight"
-      aria-label={`${value} de 5 estrelas`}
+      aria-label={`${safeValue} de 5 estrelas`}
     >
-      {"★".repeat(value)}
-      <span className="text-stone-300">{"★".repeat(5 - value)}</span>
+      {"★".repeat(safeValue)}
+      <span className="text-stone-300">{"★".repeat(5 - safeValue)}</span>
     </span>
   );
 }

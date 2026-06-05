@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { supabase, SPOTS_TABLE } from "@/lib/supabase";
 import MapView from "@/components/MapView";
 import {
   SERVICE_TYPES,
@@ -274,19 +273,23 @@ export default function AddSpotWizard({
       return;
     }
 
-    const query = editing
-      ? supabase.from(SPOTS_TABLE).update(payload).eq("id", spot!.id)
-      : supabase.from(SPOTS_TABLE).insert(payload);
+    const res = await fetch("/api/spots", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = (await res.json().catch(() => ({}))) as {
+      spot?: Spot;
+      error?: string;
+    };
 
-    const { data, error: saveError } = await query.select().single();
-
-    if (saveError || !data) {
-      setError(saveError?.message ?? "Não foi possível guardar. Tenta de novo.");
+    if (!res.ok || !data.spot) {
+      setError(data.error ?? "Não foi possível guardar. Tenta de novo.");
       setSubmitting(false);
       return;
     }
 
-    onSaved(data as Spot);
+    onSaved(data.spot);
     close();
   }
 

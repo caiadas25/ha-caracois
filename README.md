@@ -25,8 +25,8 @@ assistente (preço, dose, avaliação e notas).
 - [Next.js](https://nextjs.org) (App Router) + React + TypeScript
 - Tailwind CSS v4
 - [Leaflet](https://leafletjs.com) + react-leaflet
-- [Supabase](https://supabase.com) (tabela `caracois_spots`, acesso anónimo
-  público via RLS)
+- [Supabase](https://supabase.com) (tabela `caracois_spots`, leitura anónima
+  pública via RLS; escritas públicas validadas no servidor)
 - Pesquisa de locais: OpenStreetMap [Nominatim](https://nominatim.org)
 
 ## Configuração
@@ -64,9 +64,9 @@ Os dados ficam na tabela `caracois_spots` (projeto Supabase `workout-logbook`):
 | `osm_id` | text | id do OpenStreetMap, se aplicável |
 | `created_at` | timestamptz | automático |
 
-RLS ativo com políticas de **leitura** e **inserção** públicas (`anon`).
-Edição e remoção são feitas apenas pelo admin através da service role no
-servidor.
+RLS ativo com política de **leitura** pública (`anon`). Inserção, edição e
+remoção passam por rotas de API no servidor com validação e
+`SUPABASE_SERVICE_ROLE_KEY`.
 
 Os pedidos de alteração/remoção ficam na tabela `caracois_spot_requests`:
 
@@ -86,5 +86,5 @@ tabela apenas no servidor com `SUPABASE_SERVICE_ROLE_KEY`.
 
 ## Deploy
 
-Pronto para [Vercel](https://vercel.com) — define as duas variáveis de ambiente
+Pronto para [Vercel](https://vercel.com) — define as variáveis de ambiente
 acima no projeto.
