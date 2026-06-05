@@ -57,7 +57,7 @@ export default function Home() {
 
       {/* Mapa */}
       <div className="absolute inset-0">
-        <MapView center={center} zoom={CITY_ZOOM} spots={spots} />
+        <MapView center={center} zoom={CITY_ZOOM} spots={spots} interactive={false} />
       </div>
 
       {/* Aviso de geolocalização recusada */}

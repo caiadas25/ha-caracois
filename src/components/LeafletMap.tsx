@@ -64,6 +64,9 @@ export default function LeafletMap({
       dragging={interactive}
       zoomControl={interactive}
       doubleClickZoom={interactive}
+      touchZoom={interactive}
+      keyboard={interactive}
+      boxZoom={interactive}
       attributionControl
     >
       <TileLayer
