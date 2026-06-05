@@ -34,7 +34,13 @@ export async function POST(request: Request) {
   if (requestType !== "edit" && requestType !== "delete") {
     return NextResponse.json({ error: "Tipo de pedido inválido." }, { status: 400 });
   }
-  if (note.length < 5 || note.length > 1000) {
+  if (note.length > 1000) {
+    return NextResponse.json(
+      { error: "Deixa uma nota até 1000 caracteres." },
+      { status: 400 },
+    );
+  }
+  if (requestType === "edit" && note.length < 5) {
     return NextResponse.json(
       { error: "Deixa uma nota entre 5 e 1000 caracteres." },
       { status: 400 },

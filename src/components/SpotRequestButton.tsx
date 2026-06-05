@@ -15,6 +15,9 @@ export default function SpotRequestButton({ spot }: { spot: Spot }) {
     event.stopPropagation();
   }
 
+  const noteIsRequired = requestType === "edit";
+  const canSubmit = !submitting && (!noteIsRequired || note.trim().length >= 5);
+
   async function submit() {
     setSubmitting(true);
     setError(null);
@@ -87,7 +90,11 @@ export default function SpotRequestButton({ spot }: { spot: Spot }) {
         value={note}
         onChange={(event) => setNote(event.target.value.slice(0, 1000))}
         rows={3}
-        placeholder="Nota para o admin"
+        placeholder={
+          noteIsRequired
+            ? "Nota para o admin"
+            : "Nota para o admin (opcional)"
+        }
         className="mt-2 w-full resize-none rounded-md border border-stone-200 px-2 py-1.5 text-xs text-stone-800 outline-none focus:border-brand"
       />
       <div className="mt-2 flex items-center justify-between gap-2">
@@ -103,7 +110,7 @@ export default function SpotRequestButton({ spot }: { spot: Spot }) {
         </button>
         <button
           onClick={submit}
-          disabled={submitting || note.trim().length < 5}
+          disabled={!canSubmit}
           className="rounded-md bg-brand px-3 py-1 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-40"
         >
           {submitting ? "A enviar..." : "Enviar"}
