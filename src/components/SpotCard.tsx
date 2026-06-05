@@ -1,5 +1,6 @@
 import type { Spot } from "@/lib/types";
 import { SERVING_LABELS, SERVICE_ICONS } from "@/lib/types";
+import SpotRequestButton from "@/components/SpotRequestButton";
 
 export function Stars({ value }: { value: number }) {
   return (
@@ -51,6 +52,7 @@ export default function SpotCard({ spot }: { spot: Spot }) {
       >
         Ver página →
       </a>
+      <SpotRequestButton spot={spot} />
     </div>
   );
 }

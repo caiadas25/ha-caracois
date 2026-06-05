@@ -13,6 +13,7 @@ import {
   type ServiceType,
   type ServingSize,
   type Spot,
+  type SpotPayload,
 } from "@/lib/types";
 import { DEFAULT_CENTER, type LatLng } from "@/hooks/useGeolocation";
 
@@ -30,6 +31,8 @@ interface Props {
   onSaved: (spot: Spot) => void;
   /** Quando presente, o assistente abre em modo de edição. */
   spot?: Spot | null;
+  /** Permite guardar por uma rota protegida (ex.: admin). */
+  saveSpot?: (payload: SpotPayload, spot: Spot | null) => Promise<Spot>;
 }
 
 const TOTAL_STEPS = 6;
@@ -53,6 +56,7 @@ export default function AddSpotWizard({
   userPosition,
   onSaved,
   spot = null,
+  saveSpot,
 }: Props) {
   const editing = !!spot;
   const [step, setStep] = useState(1);
@@ -240,7 +244,7 @@ export default function AddSpotWizard({
     setSubmitting(true);
     setError(null);
 
-    const payload = {
+    const payload: SpotPayload = {
       name: name.trim(),
       lat: place.lat,
       lng: place.lng,
@@ -253,6 +257,22 @@ export default function AddSpotWizard({
       notes: notes.trim() || null,
       osm_id: place.osm_id,
     };
+
+    if (saveSpot) {
+      try {
+        const saved = await saveSpot(payload, spot);
+        onSaved(saved);
+        close();
+      } catch (saveError) {
+        setError(
+          saveError instanceof Error
+            ? saveError.message
+            : "Não foi possível guardar. Tenta de novo.",
+        );
+        setSubmitting(false);
+      }
+      return;
+    }
 
     const query = editing
       ? supabase.from(SPOTS_TABLE).update(payload).eq("id", spot!.id)

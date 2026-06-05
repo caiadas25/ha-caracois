@@ -17,6 +17,8 @@ assistente (preço, dose, avaliação e notas).
   avaliação (0–5) → notas.
 - 🔗 Página por local (`/spot/[id]`) com metadados Open Graph e partilha por
   **WhatsApp, Telegram, Email**, partilha nativa e copiar link.
+- 🛠️ Pedidos públicos de alteração/remoção a partir do cartão do mapa, com
+  revisão numa página protegida em `/admin`.
 
 ## Stack
 
@@ -34,6 +36,9 @@ Copia `.env.example` para `.env.local` e preenche:
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://<projeto>.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_xxx
+SUPABASE_SERVICE_ROLE_KEY=sb_secret_xxx
+ADMIN_PASSWORD=uma-password-forte
+ADMIN_SESSION_SECRET=uma-string-aleatoria-longa
 ```
 
 ```bash
@@ -60,6 +65,24 @@ Os dados ficam na tabela `caracois_spots` (projeto Supabase `workout-logbook`):
 | `created_at` | timestamptz | automático |
 
 RLS ativo com políticas de **leitura** e **inserção** públicas (`anon`).
+Edição e remoção são feitas apenas pelo admin através da service role no
+servidor.
+
+Os pedidos de alteração/remoção ficam na tabela `caracois_spot_requests`:
+
+| coluna | tipo | notas |
+| --- | --- | --- |
+| `id` | uuid | PK |
+| `spot_id` | uuid | referência opcional ao local; fica `null` se o local for apagado |
+| `spot_name`, `spot_address` | text | cópia do local no momento do pedido |
+| `request_type` | text | `edit` \| `delete` |
+| `note` | text | nota pública para o admin |
+| `status` | text | `pending` \| `resolved` \| `dismissed` |
+| `admin_note` | text | nota interna opcional |
+| `created_at`, `updated_at`, `resolved_at` | timestamptz | auditoria |
+
+RLS ativo sem políticas públicas na tabela de pedidos; a app escreve e lê esta
+tabela apenas no servidor com `SUPABASE_SERVICE_ROLE_KEY`.
 
 ## Deploy
 

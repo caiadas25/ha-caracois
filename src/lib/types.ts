@@ -26,8 +26,31 @@ export interface Spot {
   created_at: string;
 }
 
+export type SpotPayload = Omit<Spot, "id" | "created_at">;
+
 /** Dados necessários para criar um novo registo. */
-export type NewSpot = Omit<Spot, "id" | "created_at">;
+export type NewSpot = SpotPayload;
+
+export type SpotRequestType = "edit" | "delete";
+export type SpotRequestStatus = "pending" | "resolved" | "dismissed";
+
+export interface SpotRequest {
+  id: string;
+  spot_id: string | null;
+  spot_name: string;
+  spot_address: string | null;
+  request_type: SpotRequestType;
+  note: string;
+  status: SpotRequestStatus;
+  admin_note: string | null;
+  created_at: string;
+  updated_at: string;
+  resolved_at: string | null;
+}
+
+export interface AdminSpotRequest extends SpotRequest {
+  spot: Spot | null;
+}
 
 export const SERVICE_TYPES: ServiceType[] = ["restaurante", "takeaway"];
 

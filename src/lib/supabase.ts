@@ -13,6 +13,8 @@ const supabaseUrl =
 const supabaseAnonKey =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || FALLBACK_SUPABASE_ANON_KEY;
 
+export const SUPABASE_URL = supabaseUrl;
+
 /**
  * Cliente Supabase partilhado. A tabela `caracois_spots` tem RLS com leitura e
  * inserção públicas (anon), por isso não é necessária autenticação.
@@ -22,3 +24,4 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 });
 
 export const SPOTS_TABLE = "caracois_spots";
+export const SPOT_REQUESTS_TABLE = "caracois_spot_requests";
