@@ -16,7 +16,7 @@ const MEDALS = ["🥇", "🥈", "🥉"];
 /** Widget com os 10 locais mais bem avaliados, com filtro por cidade. */
 export default function Leaderboard({ spots, onSelect, onAdd }: Props) {
   const [city, setCity] = useState("");
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
 
   const top = useMemo(() => {
     const q = city.trim().toLowerCase();
@@ -34,36 +34,32 @@ export default function Leaderboard({ spots, onSelect, onAdd }: Props) {
   return (
     <>
       <div className="mobile-leaderboard-sheet absolute inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] z-[1000] flex max-h-[42dvh] flex-col overflow-hidden rounded-xl bg-white/95 shadow-2xl backdrop-blur sm:bottom-6 sm:left-6 sm:right-auto sm:max-h-none sm:w-72 sm:max-w-[calc(100vw-3rem)] sm:shadow-xl">
-        {/* Cabeçalho / interruptor */}
-        <div className="mobile-leaderboard-header flex items-center gap-2 px-4 py-3">
-          <div className="flex min-w-0 flex-1 items-center gap-2 font-bold text-stone-800">
-            <span className="min-w-0 text-sm leading-tight sm:text-base">
-              Melhores Estabelecimentos
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setOpen((o) => !o)}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-500 shadow-sm transition active:scale-95"
-            aria-expanded={open}
-            aria-label={
-              open ? "Recolher melhores locais" : "Expandir melhores locais"
-            }
+        {/* Cabeçalho / interruptor — todo o pill é clicável */}
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          className="mobile-leaderboard-header flex w-full items-center gap-2 px-4 py-3 text-left"
+          aria-expanded={open}
+          aria-label={
+            open ? "Recolher melhores locais" : "Expandir melhores locais"
+          }
+        >
+          <span className="min-w-0 flex-1 text-sm font-bold leading-tight text-stone-800 sm:text-base">
+            Melhores Estabelecimentos
+          </span>
+          <svg
+            aria-hidden
+            className={`h-4 w-4 shrink-0 text-stone-500 ${open ? "" : "-rotate-90"}`}
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2.25"
+            viewBox="0 0 24 24"
           >
-            <svg
-              aria-hidden
-              className={`h-4 w-4 ${open ? "" : "-rotate-90"}`}
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2.25"
-              viewBox="0 0 24 24"
-            >
-              <path d="m6 9 6 6 6-6" />
-            </svg>
-          </button>
-        </div>
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </button>
 
         {onAdd && (
           <button
