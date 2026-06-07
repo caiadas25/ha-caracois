@@ -57,24 +57,25 @@ function ClickHandler({ onClick }: { onClick: (p: LatLng) => void }) {
 
 /** Quando um popup abre, recentra o mapa na posição do marker. */
 function PopupCenterer({
-  spots,
   onCenter,
 }: {
-  spots: Spot[];
   onCenter?: (lat: number, lng: number) => void;
 }) {
   const map = useMap();
   useEffect(() => {
     if (!onCenter) return;
-    function handlePopupOpen(e: L.PopupEvent) {
-      const ll = e.source.getLatLng();
-      onCenter(ll.lat, ll.lng);
+    function handlePopupOpen(e: { popup: L.Popup }) {
+      const source = (e.popup as any)._source;
+      if (source && typeof source.getLatLng === "function") {
+        const ll = source.getLatLng();
+        onCenter(ll.lat, ll.lng);
+      }
     }
     map.on("popupopen", handlePopupOpen);
     return () => {
       map.off("popupopen", handlePopupOpen);
     };
-  }, [map, onCenter, spots]);
+  }, [map, onCenter]);
   return null;
 }
 
@@ -147,7 +148,7 @@ const LeafletMap = forwardRef<LeafletMapHandle, LeafletMapProps>(
             maxZoom={layer.maxZoom}
           />
           <Recenter center={center} zoom={zoom} />
-          <PopupCenterer spots={spots} onCenter={onSpotClick} />
+          <PopupCenterer onCenter={onSpotClick} />
           {onMapClick && <ClickHandler onClick={onMapClick} />}
           {spots.map((spot) => (
             <Marker
