@@ -1,7 +1,8 @@
 "use client";
 
+import { forwardRef } from "react";
 import dynamic from "next/dynamic";
-import type { LeafletMapProps } from "./LeafletMap";
+import type { LeafletMapProps, LeafletMapHandle } from "./LeafletMap";
 
 // O Leaflet acede ao `window`, por isso só pode correr no browser (ssr: false).
 const LeafletMap = dynamic(() => import("./LeafletMap"), {
@@ -13,6 +14,11 @@ const LeafletMap = dynamic(() => import("./LeafletMap"), {
   ),
 });
 
-export default function MapView(props: LeafletMapProps) {
-  return <LeafletMap {...props} />;
-}
+const MapView = forwardRef<LeafletMapHandle, LeafletMapProps>(function MapView(
+  props,
+  ref,
+) {
+  return <LeafletMap {...props} ref={ref} />;
+});
+
+export default MapView;

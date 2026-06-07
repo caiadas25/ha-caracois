@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useImperativeHandle, useRef, forwardRef } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -31,6 +31,10 @@ const pendingIcon = L.divIcon({
   iconSize: [32, 32],
   iconAnchor: [16, 30],
 });
+
+export interface LeafletMapHandle {
+  closePopup: () => void;
+}
 
 /** Recentra o mapa sempre que o centro muda. */
 function Recenter({ center, zoom }: { center: LatLng; zoom: number }) {
@@ -74,6 +78,18 @@ function PopupCenterer({
   return null;
 }
 
+/** Expõe a instância do mapa ao componente pai via ref. */
+function MapRef({ mapRef }: { mapRef: React.RefObject<L.Map | null> }) {
+  const map = useMap();
+  useEffect(() => {
+    mapRef.current = map;
+    return () => {
+      mapRef.current = null;
+    };
+  }, [map, mapRef]);
+  return null;
+}
+
 export interface LeafletMapProps {
   center: LatLng;
   zoom: number;
@@ -88,55 +104,71 @@ export interface LeafletMapProps {
   onSpotClick?: (lat: number, lng: number) => void;
 }
 
-export default function LeafletMap({
-  center,
-  zoom,
-  spots = [],
-  pending = null,
-  interactive = true,
-  onMapClick,
-  onSpotClick,
-}: LeafletMapProps) {
-  const { layer, layerId, select } = useMapLayer();
-  return (
-    <div className="relative h-full w-full">
-      <MapContainer
-        center={[center.lat, center.lng]}
-        zoom={zoom}
-        className="h-full w-full"
-        scrollWheelZoom={interactive}
-        dragging={interactive}
-        zoomControl={interactive}
-        doubleClickZoom={interactive}
-        attributionControl
-      >
-        {/* `key` força a recriação da camada ao trocar de fornecedor. */}
-        <TileLayer
-          key={layer.id}
-          attribution={layer.attribution}
-          url={layer.url}
-          maxZoom={layer.maxZoom}
-        />
-        <Recenter center={center} zoom={zoom} />
-        <PopupCenterer spots={spots} onCenter={onSpotClick} />
-        {onMapClick && <ClickHandler onClick={onMapClick} />}
-        {spots.map((spot) => (
-          <Marker
-            key={spot.id}
-            position={[spot.lat, spot.lng]}
-            icon={snailIcon}
-          >
-            <Popup>
-              <SpotCard spot={spot} />
-            </Popup>
-          </Marker>
-        ))}
-        {pending && (
-          <Marker position={[pending.lat, pending.lng]} icon={pendingIcon} />
-        )}
-      </MapContainer>
-      {/* Seletor de camada — escondido em mini-mapas não interativos. */}
-      {interactive && <LayerControl activeId={layerId} onSelect={select} />}
-    </div>
-  );
-}
+const LeafletMap = forwardRef<LeafletMapHandle, LeafletMapProps>(
+  function LeafletMap(
+    {
+      center,
+      zoom,
+      spots = [],
+      pending = null,
+      interactive = true,
+      onMapClick,
+      onSpotClick,
+    },
+    ref,
+  ) {
+    const { layer, layerId, select } = useMapLayer();
+    const mapInstanceRef = useRef<L.Map | null>(null);
+
+    useImperativeHandle(ref, () => ({
+      closePopup: () => {
+        mapInstanceRef.current?.closePopup();
+      },
+    }));
+
+    return (
+      <div className="relative h-full w-full">
+        <MapContainer
+          center={[center.lat, center.lng]}
+          zoom={zoom}
+          className="h-full w-full"
+          scrollWheelZoom={interactive}
+          dragging={interactive}
+          zoomControl={interactive}
+          doubleClickZoom={interactive}
+          attributionControl
+        >
+          <MapRef mapRef={mapInstanceRef} />
+          {/* `key` força a recriação da camada ao trocar de fornecedor. */}
+          <TileLayer
+            key={layer.id}
+            attribution={layer.attribution}
+            url={layer.url}
+            maxZoom={layer.maxZoom}
+          />
+          <Recenter center={center} zoom={zoom} />
+          <PopupCenterer spots={spots} onCenter={onSpotClick} />
+          {onMapClick && <ClickHandler onClick={onMapClick} />}
+          {spots.map((spot) => (
+            <Marker
+              key={spot.id}
+              position={[spot.lat, spot.lng]}
+              icon={snailIcon}
+            >
+              <Popup>
+                <SpotCard spot={spot} />
+              </Popup>
+            </Marker>
+          ))}
+          {pending && (
+            <Marker position={[pending.lat, pending.lng]} icon={pendingIcon} />
+          )}
+        </MapContainer>
+        {/* Seletor de camada — escondido em mini-mapas não interativos. */}
+        {interactive && <LayerControl activeId={layerId} onSelect={select} />}
+      </div>
+    );
+  },
+);
+
+export default LeafletMap;

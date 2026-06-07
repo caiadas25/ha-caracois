@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import MapView from "@/components/MapView";
+import type { LeafletMapHandle } from "@/components/LeafletMap";
 import AddSpotWizard from "@/components/AddSpotWizard";
 import Leaderboard from "@/components/Leaderboard";
 import { supabase, SPOTS_TABLE } from "@/lib/supabase";
@@ -16,6 +17,7 @@ import {
 
 export default function Home() {
   const router = useRouter();
+  const mapRef = useRef<LeafletMapHandle>(null);
   const [spots, setSpots] = useState<Spot[]>([]);
   const [center, setCenter] = useState<LatLng>(DEFAULT_CENTER);
   const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null);
@@ -63,6 +65,7 @@ export default function Home() {
       {/* Mapa */}
       <div className="absolute inset-0">
         <MapView
+          ref={mapRef}
           center={center}
           zoom={CITY_ZOOM}
           spots={spots}
@@ -145,6 +148,7 @@ export default function Home() {
       <Leaderboard
         spots={spots}
         onSelect={(spot) => {
+          mapRef.current?.closePopup();
           setCenter({ lat: spot.lat, lng: spot.lng });
           setSelectedSpot(spot);
         }}
