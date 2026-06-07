@@ -148,11 +148,11 @@ export default function Home() {
       <Leaderboard
         spots={spots}
         onSelect={(spot) => {
-          mapRef.current?.closePopup();
           setCenter({ lat: spot.lat, lng: spot.lng });
           setSelectedSpot(spot);
         }}
         onAdd={() => setWizardOpen(true)}
+        onInteract={() => mapRef.current?.closePopup()}
       />
 
       {/* Aviso de geolocalização recusada */}

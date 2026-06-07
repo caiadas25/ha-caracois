@@ -9,12 +9,14 @@ interface Props {
   onSelect?: (spot: Spot) => void;
   /** Abre o assistente para adicionar um novo local. */
   onAdd?: () => void;
+  /** Chamado em qualquer interação com o leaderboard (para fechar popups). */
+  onInteract?: () => void;
 }
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
 /** Widget com os 10 locais mais bem avaliados, com filtro por cidade. */
-export default function Leaderboard({ spots, onSelect, onAdd }: Props) {
+export default function Leaderboard({ spots, onSelect, onAdd, onInteract }: Props) {
   const [city, setCity] = useState("");
   const [open, setOpen] = useState(false);
 
@@ -33,7 +35,10 @@ export default function Leaderboard({ spots, onSelect, onAdd }: Props) {
 
   return (
     <>
-      <div className="mobile-leaderboard-sheet absolute inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] z-[1000] flex max-h-[42dvh] flex-col overflow-hidden rounded-xl bg-white/95 shadow-2xl backdrop-blur sm:bottom-6 sm:left-6 sm:right-auto sm:max-h-none sm:w-72 sm:max-w-[calc(100vw-3rem)] sm:shadow-xl">
+      <div
+        className="mobile-leaderboard-sheet absolute inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] z-[1000] flex max-h-[42dvh] flex-col overflow-hidden rounded-xl bg-white/95 shadow-2xl backdrop-blur sm:bottom-6 sm:left-6 sm:right-auto sm:max-h-none sm:w-72 sm:max-w-[calc(100vw-3rem)] sm:shadow-xl"
+        onClick={onInteract}
+      >
         {/* Cabeçalho / interruptor — todo o pill é clicável */}
         <button
           type="button"
