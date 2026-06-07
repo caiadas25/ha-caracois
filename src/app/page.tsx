@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import MapView from "@/components/MapView";
 import AddSpotWizard from "@/components/AddSpotWizard";
 import Leaderboard from "@/components/Leaderboard";
@@ -14,10 +15,12 @@ import {
 } from "@/hooks/useGeolocation";
 
 export default function Home() {
+  const router = useRouter();
   const [spots, setSpots] = useState<Spot[]>([]);
   const [center, setCenter] = useState<LatLng>(DEFAULT_CENTER);
   const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [navigating, setNavigating] = useState(false);
   const { position, denied, request } = useGeolocation();
 
   // Pede a localização ao carregar para centrar o mapa.
@@ -102,12 +105,26 @@ export default function Home() {
               </p>
             )}
             <div className="mt-4 flex gap-2">
-              <a
-                href={`/spot/${selectedSpot.id}`}
-                className="flex-1 rounded-xl bg-brand px-4 py-2.5 text-center text-sm font-semibold text-white hover:opacity-90"
+              <button
+                disabled={navigating}
+                onClick={() => {
+                  setNavigating(true);
+                  router.push(`/spot/${selectedSpot.id}`);
+                }}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-70"
               >
-                Ver página →
-              </a>
+                {navigating ? (
+                  <>
+                    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    A abrir…
+                  </>
+                ) : (
+                  "Ver página →"
+                )}
+              </button>
               <button
                 onClick={() => setSelectedSpot(null)}
                 className="rounded-xl border border-stone-200 px-4 py-2.5 text-sm font-medium text-stone-600 hover:bg-stone-50"
