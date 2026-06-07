@@ -16,6 +16,7 @@ import {
 export default function Home() {
   const [spots, setSpots] = useState<Spot[]>([]);
   const [center, setCenter] = useState<LatLng>(DEFAULT_CENTER);
+  const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
   const { position, denied, request } = useGeolocation();
 
@@ -58,13 +59,16 @@ export default function Home() {
 
       {/* Mapa */}
       <div className="absolute inset-0">
-        <MapView center={center} zoom={CITY_ZOOM} spots={spots} />
+        <MapView center={center} zoom={CITY_ZOOM} spots={spots} selectedSpot={selectedSpot} />
       </div>
 
       {/* Tabela de classificação */}
       <Leaderboard
         spots={spots}
-        onSelect={(spot) => setCenter({ lat: spot.lat, lng: spot.lng })}
+        onSelect={(spot) => {
+          setCenter({ lat: spot.lat, lng: spot.lng });
+          setSelectedSpot(spot);
+        }}
         onAdd={() => setWizardOpen(true)}
       />
 

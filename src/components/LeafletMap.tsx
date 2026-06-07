@@ -61,6 +61,30 @@ export interface LeafletMapProps {
   interactive?: boolean;
   /** Quando definido, clicar no mapa devolve as coordenadas. */
   onMapClick?: (p: LatLng) => void;
+  /** Local selecionado — recentra e abre o popup. */
+  selectedSpot?: Spot | null;
+}
+
+/** Abre o popup do marker correspondente ao local selecionado. */
+function PopupOpener({ spot }: { spot: Spot | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!spot) return;
+    map.eachLayer((layer) => {
+      if (
+        "getLatLng" in layer &&
+        typeof layer.getLatLng === "function" &&
+        "openPopup" in layer &&
+        typeof layer.openPopup === "function"
+      ) {
+        const ll = layer.getLatLng();
+        if (Math.abs(ll.lat - spot.lat) < 1e-6 && Math.abs(ll.lng - spot.lng) < 1e-6) {
+          layer.openPopup();
+        }
+      }
+    });
+  }, [spot, map]);
+  return null;
 }
 
 export default function LeafletMap({
@@ -70,6 +94,7 @@ export default function LeafletMap({
   pending = null,
   interactive = true,
   onMapClick,
+  selectedSpot = null,
 }: LeafletMapProps) {
   const { layer, layerId, select } = useMapLayer();
   return (
@@ -92,6 +117,7 @@ export default function LeafletMap({
           maxZoom={layer.maxZoom}
         />
         <Recenter center={center} zoom={zoom} />
+        <PopupOpener spot={selectedSpot} />
         {onMapClick && <ClickHandler onClick={onMapClick} />}
         {spots.map((spot) => (
           <Marker
