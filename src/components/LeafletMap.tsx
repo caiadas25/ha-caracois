@@ -51,6 +51,29 @@ function ClickHandler({ onClick }: { onClick: (p: LatLng) => void }) {
   return null;
 }
 
+/** Quando um popup abre, recentra o mapa na posição do marker. */
+function PopupCenterer({
+  spots,
+  onCenter,
+}: {
+  spots: Spot[];
+  onCenter?: (lat: number, lng: number) => void;
+}) {
+  const map = useMap();
+  useEffect(() => {
+    if (!onCenter) return;
+    function handlePopupOpen(e: L.PopupEvent) {
+      const ll = e.source.getLatLng();
+      onCenter(ll.lat, ll.lng);
+    }
+    map.on("popupopen", handlePopupOpen);
+    return () => {
+      map.off("popupopen", handlePopupOpen);
+    };
+  }, [map, onCenter, spots]);
+  return null;
+}
+
 export interface LeafletMapProps {
   center: LatLng;
   zoom: number;
@@ -62,7 +85,7 @@ export interface LeafletMapProps {
   /** Quando definido, clicar no mapa devolve as coordenadas. */
   onMapClick?: (p: LatLng) => void;
   /** Chamado ao clicar num caracol — useful para recentrar. */
-  onSpotClick?: (spot: Spot) => void;
+  onSpotClick?: (lat: number, lng: number) => void;
 }
 
 export default function LeafletMap({
@@ -95,17 +118,13 @@ export default function LeafletMap({
           maxZoom={layer.maxZoom}
         />
         <Recenter center={center} zoom={zoom} />
+        <PopupCenterer spots={spots} onCenter={onSpotClick} />
         {onMapClick && <ClickHandler onClick={onMapClick} />}
         {spots.map((spot) => (
           <Marker
             key={spot.id}
             position={[spot.lat, spot.lng]}
             icon={snailIcon}
-            eventHandlers={
-              onSpotClick
-                ? { click: () => onSpotClick(spot) }
-                : undefined
-            }
           >
             <Popup>
               <SpotCard spot={spot} />

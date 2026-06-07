@@ -66,7 +66,7 @@ export default function Home() {
           center={center}
           zoom={CITY_ZOOM}
           spots={spots}
-          onSpotClick={(spot) => setCenter({ lat: spot.lat, lng: spot.lng })}
+          onSpotClick={(lat, lng) => setCenter({ lat, lng })}
         />
       </div>
 
