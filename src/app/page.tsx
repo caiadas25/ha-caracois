@@ -59,8 +59,65 @@ export default function Home() {
 
       {/* Mapa */}
       <div className="absolute inset-0">
-        <MapView center={center} zoom={CITY_ZOOM} spots={spots} selectedSpot={selectedSpot} />
+        <MapView center={center} zoom={CITY_ZOOM} spots={spots} />
       </div>
+
+      {/* Cartão de detalhe do local selecionado */}
+      {selectedSpot && (
+        <div
+          className="absolute inset-0 z-[1002] flex items-center justify-center bg-black/40 px-4"
+          onClick={() => setSelectedSpot(null)}
+        >
+          <div
+            className="relative w-full max-w-sm rounded-2xl bg-white p-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setSelectedSpot(null)}
+              className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-stone-100 text-stone-500 hover:bg-stone-200"
+              aria-label="Fechar"
+            >
+              ✕
+            </button>
+            <h3 className="pr-8 text-lg font-bold leading-tight text-stone-800">
+              {selectedSpot.name}
+            </h3>
+            {selectedSpot.address && (
+              <p className="mt-1 text-sm text-stone-500 line-clamp-2">
+                {selectedSpot.address}
+              </p>
+            )}
+            <div className="mt-3 flex items-center gap-2">
+              <span className="text-amber-500">
+                {"★".repeat(selectedSpot.rating)}
+                <span className="text-stone-300">{"★".repeat(5 - selectedSpot.rating)}</span>
+              </span>
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                {selectedSpot.serving_size}
+              </span>
+            </div>
+            {selectedSpot.notes && (
+              <p className="mt-2 text-sm text-stone-600 line-clamp-3">
+                {selectedSpot.notes}
+              </p>
+            )}
+            <div className="mt-4 flex gap-2">
+              <a
+                href={`/spot/${selectedSpot.id}`}
+                className="flex-1 rounded-xl bg-brand px-4 py-2.5 text-center text-sm font-semibold text-white hover:opacity-90"
+              >
+                Ver página →
+              </a>
+              <button
+                onClick={() => setSelectedSpot(null)}
+                className="rounded-xl border border-stone-200 px-4 py-2.5 text-sm font-medium text-stone-600 hover:bg-stone-50"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tabela de classificação */}
       <Leaderboard
