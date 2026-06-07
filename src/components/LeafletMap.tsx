@@ -61,6 +61,8 @@ export interface LeafletMapProps {
   interactive?: boolean;
   /** Quando definido, clicar no mapa devolve as coordenadas. */
   onMapClick?: (p: LatLng) => void;
+  /** Chamado ao clicar num caracol — useful para recentrar. */
+  onSpotClick?: (spot: Spot) => void;
 }
 
 export default function LeafletMap({
@@ -70,6 +72,7 @@ export default function LeafletMap({
   pending = null,
   interactive = true,
   onMapClick,
+  onSpotClick,
 }: LeafletMapProps) {
   const { layer, layerId, select } = useMapLayer();
   return (
@@ -98,6 +101,11 @@ export default function LeafletMap({
             key={spot.id}
             position={[spot.lat, spot.lng]}
             icon={snailIcon}
+            eventHandlers={
+              onSpotClick
+                ? { click: () => onSpotClick(spot) }
+                : undefined
+            }
           >
             <Popup>
               <SpotCard spot={spot} />
