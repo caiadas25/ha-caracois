@@ -45,37 +45,39 @@ function Recenter({ center, zoom }: { center: LatLng; zoom: number }) {
   return null;
 }
 
-/** Captura cliques no mapa (ex.: colocar um pin manualmente). */
-function ClickHandler({ onClick }: { onClick: (p: LatLng) => void }) {
-  useMapEvents({
-    click(e) {
-      onClick({ lat: e.latlng.lat, lng: e.latlng.lng });
-    },
-  });
-  return null;
-}
-
-/** Quando um popup abre, recentra o mapa na posição do marker. */
-function PopupCenterer({
+/**
+ * Detecta cliques perto de markers e abre o popup + centra o mapa.
+ * Funciona em mobile e desktop — não depende de eventHandlers no Marker.
+ */
+function SpotClickHandler({
+  spots,
   onCenter,
 }: {
+  spots: Spot[];
   onCenter?: (lat: number, lng: number) => void;
 }) {
   const map = useMap();
-  useEffect(() => {
-    if (!onCenter) return;
-    function handlePopupOpen(e: { popup: L.Popup }) {
-      const source = (e.popup as any)._source;
-      if (source && typeof source.getLatLng === "function") {
-        const ll = source.getLatLng();
-        onCenter(ll.lat, ll.lng);
+  useMapEvents({
+    click(e) {
+      // Encontra o marker mais próximo do clique (raio ~30px em graus, varia com zoom)
+      const zoom = map.getZoom();
+      const threshold = 60 / Math.pow(2, zoom); // ~60m no zoom 15
+      let closest: Spot | null = null;
+      let minDist = Infinity;
+      for (const spot of spots) {
+        const dLat = Math.abs(spot.lat - e.latlng.lat);
+        const dLng = Math.abs(spot.lng - e.latlng.lng);
+        const dist = Math.sqrt(dLat * dLat + dLng * dLng);
+        if (dist < threshold && dist < minDist) {
+          minDist = dist;
+          closest = spot;
+        }
       }
-    }
-    map.on("popupopen", handlePopupOpen);
-    return () => {
-      map.off("popupopen", handlePopupOpen);
-    };
-  }, [map, onCenter]);
+      if (closest && onCenter) {
+        onCenter(closest.lat, closest.lng);
+      }
+    },
+  });
   return null;
 }
 
@@ -148,7 +150,7 @@ const LeafletMap = forwardRef<LeafletMapHandle, LeafletMapProps>(
             maxZoom={layer.maxZoom}
           />
           <Recenter center={center} zoom={zoom} />
-          <PopupCenterer onCenter={onSpotClick} />
+          <SpotClickHandler spots={spots} onCenter={onSpotClick} />
           {onMapClick && <ClickHandler onClick={onMapClick} />}
           {spots.map((spot) => (
             <Marker
