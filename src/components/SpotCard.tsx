@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Spot } from "@/lib/types";
 import { SERVING_LABELS, SERVICE_ICONS } from "@/lib/types";
 import SpotRequestButton from "@/components/SpotRequestButton";
@@ -24,6 +28,8 @@ export function formatPrice(price: number | null): string | null {
 
 /** Cartão compacto mostrado no popup do mapa ao clicar num ponto. */
 export default function SpotCard({ spot }: { spot: Spot }) {
+  const router = useRouter();
+  const [navigating, setNavigating] = useState(false);
   const price = formatPrice(spot.price);
   const priceImperial = formatPrice(spot.price_imperial);
   return (
@@ -49,12 +55,26 @@ export default function SpotCard({ spot }: { spot: Spot }) {
       {spot.notes && (
         <p className="mt-1 text-xs text-stone-600 line-clamp-3">{spot.notes}</p>
       )}
-      <a
-        href={`/spot/${spot.id}`}
-        className="mt-3 block rounded-lg bg-brand px-3 py-1.5 text-center text-sm font-semibold text-white hover:opacity-90"
+      <button
+        disabled={navigating}
+        onClick={() => {
+          setNavigating(true);
+          router.push(`/spot/${spot.id}`);
+        }}
+        className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-70"
       >
-        Ver página →
-      </a>
+        {navigating ? (
+          <>
+            <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            A abrir…
+          </>
+        ) : (
+          "Ver página →"
+        )}
+      </button>
       <SpotRequestButton spot={spot} />
     </div>
   );

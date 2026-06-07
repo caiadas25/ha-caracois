@@ -5,6 +5,7 @@ import {
   MapContainer,
   TileLayer,
   Marker,
+  Popup,
   useMap,
   useMapEvents,
 } from "react-leaflet";
@@ -13,6 +14,7 @@ import "leaflet/dist/leaflet.css";
 import type { Spot } from "@/lib/types";
 import type { LatLng } from "@/hooks/useGeolocation";
 import { useMapLayer } from "@/hooks/useMapLayer";
+import SpotCard from "./SpotCard";
 import LayerControl from "./LayerControl";
 
 const snailIcon = L.divIcon({
@@ -20,6 +22,7 @@ const snailIcon = L.divIcon({
   className: "snail-marker",
   iconSize: [32, 32],
   iconAnchor: [16, 30],
+  popupAnchor: [0, -28],
 });
 
 const pendingIcon = L.divIcon({
@@ -58,8 +61,6 @@ export interface LeafletMapProps {
   interactive?: boolean;
   /** Quando definido, clicar no mapa devolve as coordenadas. */
   onMapClick?: (p: LatLng) => void;
-  /** Chamado ao clicar num caracol no mapa. */
-  onSpotClick?: (spot: Spot) => void;
 }
 
 export default function LeafletMap({
@@ -69,7 +70,6 @@ export default function LeafletMap({
   pending = null,
   interactive = true,
   onMapClick,
-  onSpotClick,
 }: LeafletMapProps) {
   const { layer, layerId, select } = useMapLayer();
   return (
@@ -98,17 +98,11 @@ export default function LeafletMap({
             key={spot.id}
             position={[spot.lat, spot.lng]}
             icon={snailIcon}
-            eventHandlers={
-              onSpotClick
-                ? {
-                    click: (e) => {
-                      L.DomEvent.stopPropagation(e.originalEvent);
-                      onSpotClick(spot);
-                    },
-                  }
-                : undefined
-            }
-          />
+          >
+            <Popup>
+              <SpotCard spot={spot} />
+            </Popup>
+          </Marker>
         ))}
         {pending && (
           <Marker position={[pending.lat, pending.lng]} icon={pendingIcon} />

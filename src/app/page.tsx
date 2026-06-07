@@ -62,15 +62,7 @@ export default function Home() {
 
       {/* Mapa */}
       <div className="absolute inset-0">
-        <MapView
-          center={center}
-          zoom={CITY_ZOOM}
-          spots={spots}
-          onSpotClick={(spot) => {
-            setCenter({ lat: spot.lat, lng: spot.lng });
-            setSelectedSpot(spot);
-          }}
-        />
+        <MapView center={center} zoom={CITY_ZOOM} spots={spots} />
       </div>
 
       {/* Cartão de detalhe do local selecionado */}
